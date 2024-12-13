@@ -1,0 +1,20 @@
+{
+    "files": [
+        "core/driver.py",
+        "core/model.py",
+        "gui/app.py",
+        "gui/MainWindow.ui",
+        "gui/NewPost.ui",
+        "main.py",
+        "gui/new_post.py",
+        "gui/main_window.py",
+        "core/database.py",
+        "core/schema.py",
+        "gui/MessageDialog.ui",
+        "gui/message_dialog.py",
+        "db.sqlite3",
+        "requirements.txt",
+        "ربات آسان ساز ثنا.spec",
+        ".gitignore"
+    ]
+}

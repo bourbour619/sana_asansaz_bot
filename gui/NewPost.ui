@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>newPost</class>
+ <widget class="QWidget" name="newPost">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1126</width>
+    <height>627</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>B Yekan</family>
+    <pointsize>12</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>ارسال جدید</string>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::LayoutDirection::RightToLeft</enum>
+  </property>
+  <widget class="QGroupBox" name="newPostBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>1101</width>
+     <height>611</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>ارسال جدید</string>
+   </property>
+   <widget class="QPushButton" name="createFinalBtn">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>560</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ثبت نهایی</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="titleLabel">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>60</y>
+      <width>49</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>عنوان:</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="itemsBox">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>110</y>
+      <width>1061</width>
+      <height>441</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>لایحه ها </string>
+    </property>
+    <widget class="QPushButton" name="uploadExcelBtn">
+     <property name="geometry">
+      <rect>
+       <x>840</x>
+       <y>130</y>
+       <width>211</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>B Yekan</family>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::LayoutDirection::RightToLeft</enum>
+     </property>
+     <property name="text">
+      <string>بارگزاری اکسل مشخصات (1)</string>
+     </property>
+    </widget>
+    <widget class="QTableWidget" name="sanaItemsTable">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>180</y>
+       <width>1041</width>
+       <height>251</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>B Yekan</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <column>
+      <property name="text">
+       <string>شماره لایحه</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>تاریخ لایحه</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>نوع لایحه</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>نام و نام خانوادگی</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>شعبه</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>شماره بایگانی / پرونده</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>شماره ابلاغیه / دادنامه</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>تاریخ تنظیم</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>تاریخ ابلاغ</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string> تعداد فایل پیوست</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>فایل پیوست نهایی</string>
+      </property>
+     </column>
+    </widget>
+    <widget class="QPushButton" name="uploadFilesBtn">
+     <property name="geometry">
+      <rect>
+       <x>530</x>
+       <y>130</y>
+       <width>291</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>بارگزاری و ادغام پیوست های لایحه (۲)</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="guideLabel1">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>20</y>
+       <width>571</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>B Yekan</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>۱- ابتدا اکسل مشخصات را مطابق نمونه (</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="commitBtn">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>130</y>
+       <width>121</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>B Yekan</family>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::LayoutDirection::RightToLeft</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string>اعتبار سنجی (۳)</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="guideLabel2">
+     <property name="geometry">
+      <rect>
+       <x>470</x>
+       <y>20</y>
+       <width>201</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>B Yekan</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>) تکمیل و بارگزاری کنید.</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="guideLabel3">
+     <property name="geometry">
+      <rect>
+       <x>650</x>
+       <y>50</y>
+       <width>371</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>B Yekan</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>۲- سپس فایل های پیوست لایحه را بارگزاری نمایید تا ادغام شوند.</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="guideLabel4">
+     <property name="geometry">
+      <rect>
+       <x>640</x>
+       <y>80</y>
+       <width>381</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>B Yekan</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>۳- اعتبار سنجی کرده تا لیست لایحه ها به همراه پیوست ایجاد شود.</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="showExampleExcelBtn">
+     <property name="geometry">
+      <rect>
+       <x>684</x>
+       <y>30</y>
+       <width>101</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>مشاهده نمونه</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QPushButton" name="createDraftBtn">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>50</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ثبت پیش نویس</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="titleInput">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>50</y>
+      <width>221</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="dateInput">
+    <property name="geometry">
+     <rect>
+      <x>890</x>
+      <y>50</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="dateLabel">
+    <property name="geometry">
+     <rect>
+      <x>1010</x>
+      <y>60</y>
+      <width>49</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>تاریخ:</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
