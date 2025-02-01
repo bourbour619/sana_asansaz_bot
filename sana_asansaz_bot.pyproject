@@ -12,9 +12,9 @@
         "core/schema.py",
         "gui/MessageDialog.ui",
         "gui/message_dialog.py",
-        "db.sqlite3",
         "requirements.txt",
         "ربات آسان ساز ثنا.spec",
-        ".gitignore"
+        ".gitignore",
+        "sana_asansaz_bot.pyproject.user"
     ]
 }

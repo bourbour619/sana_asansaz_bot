@@ -73,9 +73,9 @@ class CreateSanaItem(BaseModel):
 
 
 class CreateAttachment(BaseModel):
-    title: str
-    stored_at: str
-    merged: Optional[bool] = None
+    name: str
+    path: str
+    count: Optional[int] = None
 
 
 

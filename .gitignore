@@ -75,4 +75,7 @@ CMakeLists.txt.user*
 build
 dist
 data
+sample
+sana_asansaz_bot.pyproject.user
 *.sqlite3
+*.accdb

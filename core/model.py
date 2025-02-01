@@ -14,7 +14,7 @@ class Config(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     key: Mapped[str] = mapped_column(String(50), unique=True)
-    value: Mapped[str] = mapped_column(String(-1), nullable=True)
+    value: Mapped[str] = mapped_column(String(255), nullable=True)
     attachment_value: Mapped['Attachment'] = relationship(back_populates='config')
     date: Mapped[datetime] = mapped_column(DateTime)
 
@@ -29,7 +29,7 @@ class Post(Base):
 
     id: Mapped[int] = mapped_column(nullable=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(50), unique=True)
-    date: Mapped[str] = mapped_column(String(10), primary_key=True)
+    date: Mapped[str] = mapped_column(String(16), primary_key=True, nullable=False)
     status: Mapped[PostStatus]
     items: Mapped[List['SanaItem']] = relationship(back_populates='post')
     start_time: Mapped[datetime.time] = mapped_column(Time, nullable=True)
@@ -61,7 +61,7 @@ class SanaItem(Base):
 
     id: Mapped[int] = mapped_column(nullable=True, autoincrement=True)
     number: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[Optional[str]] = mapped_column(String(10))
+    date: Mapped[Optional[str]] = mapped_column(String(16), nullable=False)
     type: Mapped[SanaItemType]
     owner: Mapped[str] = mapped_column(String(255))
     branch: Mapped[str] = mapped_column(String(25))
@@ -71,7 +71,7 @@ class SanaItem(Base):
     set_date: Mapped[str] = mapped_column(String(10))
     tracking_code: Mapped[str] = mapped_column(String(16), nullable=True)
     success: Mapped[bool] = mapped_column(default=False)
-    description: Mapped[str] = mapped_column(String(-1), nullable=True)
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
     attachments: Mapped[List['Attachment']] = relationship(back_populates='sana_item')
 
 
@@ -87,11 +87,11 @@ class Attachment(Base):
     __tablename__ = 'attachments'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String(225))
-    stored_at: Mapped[str] = mapped_column(String(-1))
-    merged: Mapped[bool] = mapped_column(default=False)
-    sana_item_number: Mapped[int] = mapped_column(ForeignKey('sana_items.number'), nullable=True)
-    config_id: Mapped[int] = mapped_column(ForeignKey('configs.id'), nullable=True)
+    name: Mapped[str] = mapped_column(String(225))
+    path: Mapped[str] = mapped_column(String(255))
+    count: Mapped[int] = mapped_column(default=1)
+    sana_item_number: Mapped[int] = mapped_column(ForeignKey('sana_items.number', ), nullable=True)
+    config_id: Mapped[int] = mapped_column(ForeignKey('configs.id', ), nullable=True)
 
     sana_item: Mapped['SanaItem'] = relationship(back_populates='attachments')
     config: Mapped['Config'] = relationship(back_populates='attachment_value')

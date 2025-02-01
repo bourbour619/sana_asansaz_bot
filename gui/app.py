@@ -4,14 +4,15 @@ import os
 import PyPDF2
 import pandas as pd
 from pathlib import Path
+from functools import partial
 
 from typing import List
 from pydantic import ValidationError
-from sqlalchemy import select
+from sqlalchemy import select, text, delete
 from sqlalchemy.exc import IntegrityError
 
 from PySide6.QtWidgets import (QApplication, QWidget, QTableWidget,
-                            QTableWidgetItem,QHeaderView, QFileDialog)
+                            QTableWidgetItem,QHeaderView, QFileDialog, QToolButton, QHBoxLayout)
 from PySide6.QtGui import QIcon, QColor
 from PySide6.QtCore import Slot, Signal
 
@@ -36,11 +37,13 @@ class MessageDialog(QWidget):
         self.setFixedSize(400, 159)
         if type == 'error':
             self.setWindowTitle('خطا ❌')
+            self.ui.messageText.setText('❌ %s'% message)
         elif type == 'success':
             self.setWindowTitle('موفقیت ✅')
+            self.ui.messageText.setText('✅ %s' % message)
         elif type == 'warn':
             self.setWindowTitle('هشدار ⚠️')
-        self.ui.messageText.setText(message)
+            self.ui.messageText.setText('⚠️ %s' % message)
 
 
 class MainWindow(QWidget):
@@ -74,6 +77,34 @@ class MainWindow(QWidget):
                 self.ui.postsTable.setItem(i, 3, status)
                 items_count = QTableWidgetItem(str(post.items_count))
                 self.ui.postsTable.setItem(i, 2, items_count)
+                edit_button = QToolButton()
+                edit_button.setText('✏️')
+                delete_button = QToolButton()
+                delete_button.setText('❌')
+                delete_button.clicked.connect(partial(self.delete_post, post.date))
+                button_layout = QHBoxLayout()
+                button_layout.addWidget(edit_button)
+                button_layout.addWidget(delete_button)
+                button_widget = QWidget()
+                button_widget.setLayout(button_layout)
+                self.ui.postsTable.setCellWidget(i, 8, button_widget)
+                self.ui.postsTable.resizeRowToContents(i)
+
+
+    @Slot(str)
+    def delete_post(self, post_date):
+        with db_instance.get_session() as session:
+            post = session.get(model.Post, post_date)
+            sana_items_result = session.execute(text("SELECT number FROM sana_items WHERE post_date = :post_date"), {"post_date": post.date})
+            sana_item_numbers = [row[0] for row in sana_items_result.fetchall()]
+            if sana_item_numbers:
+                for item_number in sana_item_numbers:
+                    session.execute(text("DELETE FROM attachments WHERE sana_item_number = :item_number"), {"item_number": item_number})
+                session.execute(text("DELETE FROM sana_items WHERE post_date = :post_date"), {"post_date": post.date})
+            session.delete(post)
+            session.commit()
+            shutil.rmtree(base_dir / 'data' / post.title)
+        self.fetch_all_posts()
 
     @Slot()
     def new_post(self):
@@ -98,6 +129,7 @@ class NewPost(QWidget):
 
     _drafted = Signal((bool),)
     _created = Signal((bool),)
+    _excel_df : pd.DataFrame = None
     _post_object: model.Post = None
     _sana_item_objects: List[model.SanaItem] = list()
 
@@ -110,10 +142,11 @@ class NewPost(QWidget):
         self.ui.sanaItemsTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.ui.sanaItemsTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.ui.createDraftBtn.clicked.connect(self.new_draft_post)
-        self.ui.createFinalBtn.clicked.connect(self.emit_created)
+        self.ui.createFinalBtn.clicked.connect(self.new_final_post)
         self.ui.showExampleExcelBtn.clicked.connect(self.show_example_excel)
         self.ui.uploadExcelBtn.clicked.connect(self.upload_excel)
         self.ui.uploadFilesBtn.clicked.connect(self.upload_and_merge)
+        self.ui.validateBtn.clicked.connect(self.validate)
 
 
     @Slot()
@@ -131,10 +164,9 @@ class NewPost(QWidget):
                     session.add(self._post_object)
                     session.commit()
                     self.emit_drafted()
-                    self.ui.commitBtn.setEnabled(True)
                     self.ui.itemsBox.setEnabled(True)
                     self.ui.uploadFilesBtn.setEnabled(False)
-                    self.ui.commitBtn.setEnabled(False)
+                    self.ui.validateBtn.setEnabled(False)
                 except IntegrityError:
                     message_dialog = MessageDialog('error', 'تاریخ لایحه تکراری است')
                     message_dialog.show()
@@ -177,78 +209,29 @@ class NewPost(QWidget):
             dialog.setFileMode(QFileDialog.AnyFile)
             excel_path = dialog.getOpenFileName(self, 'باز کردن فایل','C:\\Dekstop', 'Excel file (*.xlsx *.xls)')
             shutil.copyfile(Path(excel_path[0]).resolve(), base_dir / ('%s/اکسل مشخصات.xlsx' %post_dir))
-            excel_df = pd.read_excel(base_dir / ('%s/اکسل مشخصات.xlsx' %post_dir))
-            self.ui.sanaItemsTable.setRowCount(excel_df.shape[0])
-            errors = {}
-            def wrapTableWidgetItemError(item: QTableWidgetItem, name: str):
-                try:
-                    if errors[name] is not None:
-                        item.setToolTip(errors[name])
-                        item.setBackground(QColor('crimson'))
-                except KeyError:
-                    pass
-
-            items: List[schema.CreateSanaItem] = list()
-            for i, row in excel_df.iterrows():
-                try:
-                    sana_item = schema.CreateSanaItem(
-                                    number=str(row['شماره لایحه']),
-                                    date=row['تاریخ لایحه'],
-                                    type=row['نوع لایحه'],
-                                    owner=row['نام و نام خانوادگی'],
-                                    branch=row['شعبه'],
-                                    file_number=str(row['شماره بایگانی / پرونده']),
-                                    notice_number=str(row['شماره ابلاغیه / دادنامه']),
-                                    notice_date=row['تاریخ ابلاغ'],
-                                    set_date=row['تاریخ تنظیم'])
-                    items.append(sana_item)
-                except ValidationError as e:
-                    for err in e.errors():
-                        for name in err['loc']:
-                            errors[name] = err['msg']
-
+            self._excel_df = pd.read_excel(base_dir / ('%s/اکسل مشخصات.xlsx' %post_dir))
+            self.ui.sanaItemsTable.setRowCount(self._excel_df.shape[0])
+            for i, row in self._excel_df.iterrows():
                 number = QTableWidgetItem(str(row['شماره لایحه']))
-                wrapTableWidgetItemError(number, 'number')
                 self.ui.sanaItemsTable.setItem(i, 0, number)
                 date = QTableWidgetItem(row['تاریخ لایحه'])
-                wrapTableWidgetItemError(date, 'date')
                 self.ui.sanaItemsTable.setItem(i, 1, date)
                 type = QTableWidgetItem(row['نوع لایحه'])
-                wrapTableWidgetItemError(type, 'type')
                 self.ui.sanaItemsTable.setItem(i, 2, type)
                 owner = QTableWidgetItem(row['نام و نام خانوادگی'])
-                wrapTableWidgetItemError(owner, 'owner')
                 self.ui.sanaItemsTable.setItem(i, 3, owner)
                 branch = QTableWidgetItem(row['شعبه'])
-                wrapTableWidgetItemError(branch, 'branch')
                 self.ui.sanaItemsTable.setItem(i, 4, branch)
                 file_number = QTableWidgetItem(str(row['شماره بایگانی / پرونده']))
-                wrapTableWidgetItemError(file_number, 'file_number')
                 self.ui.sanaItemsTable.setItem(i, 5, file_number)
                 notice_number = QTableWidgetItem(str(row['شماره ابلاغیه / دادنامه']))
-                wrapTableWidgetItemError(notice_number, 'notice_number')
                 self.ui.sanaItemsTable.setItem(i, 6, notice_number)
                 set_date = QTableWidgetItem(row['تاریخ تنظیم'])
-                wrapTableWidgetItemError(set_date, 'set_date')
                 self.ui.sanaItemsTable.setItem(i, 7, set_date)
                 notice_date = QTableWidgetItem(row['تاریخ ابلاغ'])
-                wrapTableWidgetItemError(notice_date, 'notice_date')
                 self.ui.sanaItemsTable.setItem(i, 8, notice_date)
-                errors.clear()
-
-            with db_instance.get_session() as session:
-                for sana_item in items:
-                    self._sana_item_objects.append(
-                        model.SanaItem(**sana_item.model_dump(exclude=['type', 'attachments']),
-                                        type= model.SanaItemType(sana_item.type),
-                                        post=self._post_object,
-                                        attachments=[]
-                                    )
-                        )
-                session.add_all(self._sana_item_objects)
-                session.commit()
+            self.ui.allCountLabel.setText('لایحه:‌ %d مورد' % self._excel_df.shape[0])
             self.ui.uploadFilesBtn.setEnabled(True)
-            self.emit_drafted()
 
 
     @Slot()
@@ -257,56 +240,140 @@ class NewPost(QWidget):
             dialog = QFileDialog()
             dialog.setFileMode(QFileDialog.AnyFile)
 
-            src_file_paths = dialog.getOpenFileNames(self, 'باز کردن فایل','C:\\Dekstop', 'Pdf Files (*.pdf)')
-            dest_file_paths = []
-            for src_file_path in src_file_paths[0]:
-                dest_file_path = base_dir / 'data' / self._post_object.title / src_file_path.split('/')[-1]
-                shutil.copyfile(Path(src_file_path).resolve(), dest_file_path)
-                dest_file_paths.append(dest_file_path)
+            src_filepaths = dialog.getOpenFileNames(self, 'باز کردن فایل','C:\\Dekstop', 'Pdf Files (*.pdf)')
+            dest_filepaths = []
+            for src_filepath in src_filepaths[0]:
+                dest_filepath = base_dir / 'data' / self._post_object.title / src_filepath.split('/')[-1]
+                shutil.copyfile(Path(src_filepath).resolve(), dest_filepath)
+                dest_filepaths.append(dest_filepath)
+            self.ui.uploadedCountLabel.setText('آپلود:‌ %d فایل' %len(dest_filepaths))
 
-            for item in self._sana_item_objects:
-                attachments: List[schema.CreateAttachment] = []
+            attachments: List[schema.CreateAttachment] = list()
+            for i, row in self._excel_df.iterrows():
                 deleted = []
-                for i, dest_file_path in enumerate(dest_file_paths):
+                for i, dest_filepath in enumerate(dest_filepaths):
                     attachment: schema.CreateAttachment = None
-                    if ('%s %s'%(item.type.value, item.owner)) in str(dest_file_path):
-                        attachment = schema.CreateAttachment(title=dest_file_path.stem, stored_at= str(dest_file_path))
+                    if ('%s %s'%(row['نوع لایحه'], row['نام و نام خانوادگی'])) in str(dest_filepath):
+                        attachment = schema.CreateAttachment(name=dest_filepath.stem, path= str(dest_filepath))
                         attachments.append(attachment)
-                        item.attachments.append(
-                                model.Attachment(**attachment.model_dump())
-                        )
                         deleted.append(i)
                 for d in deleted[::-1]:
-                    dest_file_paths.pop(d)
-                attachments.sort(key=lambda x: x.title)
+                    dest_filepaths.pop(d)
 
+                attachments.sort(key=lambda x: x.name)
                 if len(attachments) > 0:
                     with PyPDF2.PdfWriter() as merger:
                         for attachment in attachments:
-                            merger.append(attachment.stored_at)
-                        merged_filename = Path(attachments[0].title).stem
-                        merged_file_path = base_dir / ('data/%s/%s 0.pdf' %(self._post_object.title, merged_filename))
-                        merger.write(merged_file_path)
-                        attachment = schema.CreateAttachment(title=merged_filename, stored_at=str(merged_file_path), merged=True)
-                        item.attachments.append(
-                                model.Attachment(**attachment.model_dump())
+                            merger.append(attachment.path)
+                        merged_filename = Path(attachments[0].name).stem
+                        merged_filepath = base_dir / ('data/%s/%s 0.pdf' %(self._post_object.title, merged_filename))
+                        merger.write(merged_filepath)
+                    self._excel_df['attachments_count'] = len(attachments)
+                    self._excel_df['final_attachment'] = merged_filepath
+                attachments.clear()
+            self.ui.validateBtn.setEnabled(True)
+
+
+    def styleTableWidgetItem(item: QTableWidgetItem, error: str):
+        if error is not None:
+                item.setToolTip(error)
+                item.setBackground(QColor('crimson'))
+        else:
+            item.setBackground(QColor('green'))
+
+    @Slot()
+    def validate(self):
+        errors = {}
+        all, valid = int(self._excel_df.shape[0]), 0
+        sana_items: List[schema.CreateSanaItem] = list()
+
+        for i, row in self._excel_df.iterrows():
+            try:
+                sana_item = schema.CreateSanaItem(
+                                number=str(row['شماره لایحه']),
+                                date=row['تاریخ لایحه'],
+                                type=row['نوع لایحه'],
+                                owner=row['نام و نام خانوادگی'],
+                                branch=row['شعبه'],
+                                file_number=str(row['شماره بایگانی / پرونده']),
+                                notice_number=str(row['شماره ابلاغیه / دادنامه']),
+                                notice_date=row['تاریخ ابلاغ'],
+                                set_date=row['تاریخ تنظیم'])
+                sana_items.append(sana_item)
+            except ValidationError as e:
+                for err in e.errors():
+                    for name in err['loc']:
+                        errors[name] = err['msg']
+
+            number = QTableWidgetItem(str(row['شماره لایحه']))
+            NewPost.styleTableWidgetItem(number, errors.get('number'))
+            self.ui.sanaItemsTable.setItem(i, 0, number)
+            date = QTableWidgetItem(row['تاریخ لایحه'])
+            NewPost.styleTableWidgetItem(date, errors.get('date'))
+            self.ui.sanaItemsTable.setItem(i, 1, date)
+            type = QTableWidgetItem(row['نوع لایحه'])
+            NewPost.styleTableWidgetItem(type, errors.get('type'))
+            self.ui.sanaItemsTable.setItem(i, 2, type)
+            owner = QTableWidgetItem(row['نام و نام خانوادگی'])
+            NewPost.styleTableWidgetItem(owner, errors.get('owner'))
+            self.ui.sanaItemsTable.setItem(i, 3, owner)
+            branch = QTableWidgetItem(row['شعبه'])
+            NewPost.styleTableWidgetItem(branch, errors.get('branch'))
+            self.ui.sanaItemsTable.setItem(i, 4, branch)
+            file_number = QTableWidgetItem(str(row['شماره بایگانی / پرونده']))
+            NewPost.styleTableWidgetItem(file_number, errors.get('file_number'))
+            self.ui.sanaItemsTable.setItem(i, 5, file_number)
+            notice_number = QTableWidgetItem(str(row['شماره ابلاغیه / دادنامه']))
+            NewPost.styleTableWidgetItem(notice_number, errors.get('notice_number'))
+            self.ui.sanaItemsTable.setItem(i, 6, notice_number)
+            set_date = QTableWidgetItem(row['تاریخ تنظیم'])
+            NewPost.styleTableWidgetItem(set_date, errors.get('set_date'))
+            self.ui.sanaItemsTable.setItem(i, 7, set_date)
+            notice_date = QTableWidgetItem(row['تاریخ ابلاغ'])
+            NewPost.styleTableWidgetItem(notice_date, errors.get('notice_date'))
+            self.ui.sanaItemsTable.setItem(i, 8, notice_date)
+            if row.get('attachments_count') is not None:
+                attachments_count = QTableWidgetItem(str(row['attachments_count']))
+            else:
+                attachments_count = QTableWidgetItem('0')
+                errors['attachments_count']= 'فایل پیوست برای لایحه وجود ندارد.'
+            NewPost.styleTableWidgetItem(attachments_count, errors.get('attachment_count'))
+            self.ui.sanaItemsTable.setItem(i, 9, attachments_count)
+            if row.get('final_attachment') is not None:
+                attachment_name = Path(row['final_attachment']).stem
+                final_attachment = QTableWidgetItem(attachment_name)
+            else:
+                final_attachment = QTableWidgetItem('')
+                errors['final_attachment'] = 'فایل پیوست برای لایحه وجود ندارد.'
+            NewPost.styleTableWidgetItem(final_attachment, errors.get('final_attachment'))
+            self.ui.sanaItemsTable.setItem(i, 10, final_attachment)
+            if not errors:
+                valid += 1
+                attachment = model.Attachment(
+                            name=Path(row['final_attachment']).stem,
+                            path=str(row['final_attachment']),
+                            count=row['attachments_count']
                         )
+                sana_item_object = model.SanaItem(
+                            **sana_item.model_dump(exclude=['type', 'attachments']),
+                            type= model.SanaItemType(sana_item.type),
+                            post=self._post_object,
+                            attachments=[attachment]
+                        )
+                self._sana_item_objects.append(sana_item_object)
+            errors.clear()
+        self.ui.validCountLabel.setText('سالم: %d مورد' % valid)
+        self.ui.invalidCountLabel.setText('خراب: %d مورد' % (all - valid))
 
-            with db_instance.get_session() as session:
-                session.add_all(self._sana_item_objects)
-                session.commit()
+        if all - valid == 0:
+            self.ui.createFinalBtn.setEnabled(True)
 
-            for i, item in enumerate(self._sana_item_objects):
-                if item.attachments_count > 0:
-                    attachment_count = QTableWidgetItem(str(item.attachments_count))
-                    self.ui.sanaItemsTable.setItem(i, 9, attachment_count)
-                    final_attachment = QTableWidgetItem(item.attachments[-1].title)
-                    self.ui.sanaItemsTable.setItem(i, 10, final_attachment)
-
-            self.ui.commitBtn.setEnabled(True)
-            self.emit_drafted()
-
-
+    @Slot()
+    def new_final_post(self):
+        with db_instance.get_session() as session:
+            session.add_all(self._sana_item_objects)
+            session.commit()
+        self.emit_created()
 
 class App(QApplication):
 

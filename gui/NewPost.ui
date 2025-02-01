@@ -203,7 +203,7 @@
       <string>۱- ابتدا اکسل مشخصات را مطابق نمونه (</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="commitBtn">
+    <widget class="QPushButton" name="validateBtn">
      <property name="geometry">
       <rect>
        <x>400</x>
@@ -311,6 +311,12 @@
     <property name="text">
      <string>ثبت پیش نویس</string>
     </property>
+    <property name="autoDefault">
+     <bool>false</bool>
+    </property>
+    <property name="default">
+     <bool>false</bool>
+    </property>
    </widget>
    <widget class="QLineEdit" name="titleInput">
     <property name="geometry">
@@ -349,6 +355,82 @@
     </property>
     <property name="text">
      <string>تاریخ:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="allCountLabel">
+    <property name="geometry">
+     <rect>
+      <x>970</x>
+      <y>570</y>
+      <width>101</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: blue;</string>
+    </property>
+    <property name="text">
+     <string>لایحه : ۰ مورد</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="uploadedCountLabel">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>570</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: blue;</string>
+    </property>
+    <property name="text">
+     <string>آپلود‌:‌ ۰ فایل</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="validCountLabel">
+    <property name="geometry">
+     <rect>
+      <x>860</x>
+      <y>570</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>B Yekan</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: green;</string>
+    </property>
+    <property name="text">
+     <string>سالم :‌ ۰ مورد</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="invalidCountLabel">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>570</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>B Yekan</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: crimson;</string>
+    </property>
+    <property name="text">
+     <string>خراب: ۰ مورد</string>
     </property>
    </widget>
   </widget>
