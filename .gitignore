@@ -76,6 +76,8 @@ build
 dist
 data
 sample
-sana_asansaz_bot.pyproject.user
+!sana_asansaz_bot.pyproject
+sana_asansaz_bot.*
+venv
 *.sqlite3
 *.accdb
