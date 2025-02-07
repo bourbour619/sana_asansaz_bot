@@ -78,6 +78,13 @@ class CreateAttachment(BaseModel):
     count: Optional[int] = None
 
 
+class SanaHoghooghiPerson(BaseModel):
+    code_melli: str
+    personal_passwrod: str
+    shenase: str
+    temp_code: str
+
+
 
 
 

@@ -8,13 +8,13 @@ from functools import partial
 
 from typing import List
 from pydantic import ValidationError
-from sqlalchemy import select, text, delete
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 from PySide6.QtWidgets import (QApplication, QWidget, QTableWidget,
                             QTableWidgetItem,QHeaderView, QFileDialog, QToolButton, QHBoxLayout)
 from PySide6.QtGui import QIcon, QColor
-from PySide6.QtCore import Slot, Signal
+from PySide6.QtCore import Slot, Signal, QStringListModel
 
 from core import schema, model, database
 
@@ -22,6 +22,7 @@ from core import schema, model, database
 from .main_window import Ui_mainWindow
 from .new_post import Ui_newPost
 from .message_dialog import Ui_messageDialog
+from .send_post import Ui_sendPost
 
 
 base_dir = Path(__file__).resolve().parent.parent
@@ -60,7 +61,7 @@ class MainWindow(QWidget):
         self.ui.postsTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         for i in range(1, self.ui.postsTable.columnCount()):
             self.ui.postsTable.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
-        self.ui.newPostBtn.clicked.connect(self.new_post)
+        self.ui.newPostBtn.clicked.connect(self.ui_new_post)
         self.fetch_all_posts()
 
 
@@ -77,12 +78,16 @@ class MainWindow(QWidget):
                 self.ui.postsTable.setItem(i, 3, status)
                 items_count = QTableWidgetItem(str(post.items_count))
                 self.ui.postsTable.setItem(i, 2, items_count)
+                send_button = QToolButton()
+                send_button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStart))
+                send_button.clicked.connect(partial(self.ui_send_post, post.date))
                 edit_button = QToolButton()
-                edit_button.setText('✏️')
+                edit_button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.MailMessageNew))
                 delete_button = QToolButton()
-                delete_button.setText('❌')
+                delete_button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.EditDelete))
                 delete_button.clicked.connect(partial(self.delete_post, post.date))
                 button_layout = QHBoxLayout()
+                button_layout.addWidget(send_button)
                 button_layout.addWidget(edit_button)
                 button_layout.addWidget(delete_button)
                 button_widget = QWidget()
@@ -103,22 +108,35 @@ class MainWindow(QWidget):
                 session.execute(text("DELETE FROM sana_items WHERE post_date = :post_date"), {"post_date": post.date})
             session.delete(post)
             session.commit()
-            shutil.rmtree(base_dir / 'data' / post.title)
+            try:
+                shutil.rmtree(base_dir / 'data' / post.title)
+            except FileNotFoundError:
+                pass
         self.fetch_all_posts()
 
     @Slot()
-    def new_post(self):
-        self.post = NewPost()
-        self.post.setFixedSize(1126, 627)
-        self.post.setGeometry(640, 280, self.post.width(), self.post.height())
-        self.post.show()
-        self.post._created.connect(self.post_created)
-        self.post._drafted.connect(self.post_drafted)
+    def ui_new_post(self):
+        self.new_post = NewPost()
+        self.new_post.setFixedSize(1126, 627)
+        self.new_post.setGeometry(640, 280, self.new_post.width(), self.new_post.height())
+        self.new_post.show()
+        self.new_post._created.connect(self.post_created)
+        self.new_post._drafted.connect(self.post_drafted)
 
+    @Slot(str)
+    def ui_send_post(self, post_date):
+        post: model.Post = None
+        with db_instance.get_session() as session:
+            post = session.get(model.Post, post_date)
+        if post is not None:
+            self.send_post = SendPost(post)
+            self.send_post.setFixedSize(600,500)
+            self.send_post.setGeometry(640, 280, self.send_post.width(), self.send_post.height())
+            self.send_post.show()
 
     @Slot()
     def post_created(self):
-        self.post.close()
+        self.new_post.close()
         self.fetch_all_posts()
 
     @Slot()
@@ -374,6 +392,30 @@ class NewPost(QWidget):
             session.add_all(self._sana_item_objects)
             session.commit()
         self.emit_created()
+
+
+class SendPost(QWidget):
+
+    def __init__(self, post: model.Post):
+        super(SendPost, self).__init__()
+        self.setFixedSize(600,500)
+        self.setWindowIcon(QIcon(str(base_dir / 'staticfiles/adliran.ico')))
+        self.ui = Ui_sendPost()
+        self.ui.setupUi(self)
+        self.ui.sendPostBox.setTitle(post.title)
+        with db_instance.get_session() as session:
+            post = session.merge(post)
+            self.load_sana_items_list(post.items)
+
+    def load_sana_items_list(self, items: List[model.SanaItem]):
+        sana_items_str = list()
+        string_model = QStringListModel()
+        for i, item in enumerate(items):
+            type = model.SanaItemType(item.type).value
+            sana_items_str.append(f'{i + 1} {type} {item.owner} ⬅️ انجام نشده ⬅️ کد رهگیری: ۰')
+        string_model.setStringList(sana_items_str)
+        self.ui.postSanaItemsList.setModel(string_model)
+
 
 class App(QApplication):
 

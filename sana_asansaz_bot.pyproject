@@ -8,6 +8,7 @@
         "main.py",
         "gui/new_post.py",
         "gui/main_window.py",
+        "gui/send_post.py",
         "core/database.py",
         "core/schema.py",
         "gui/MessageDialog.ui",
@@ -15,6 +16,8 @@
         "requirements.txt",
         "ربات آسان ساز ثنا.spec",
         ".gitignore",
-        "sana_asansaz_bot.pyproject.user"
+        "sana_asansaz_bot.pyproject.user",
+        "gui/SendPost.ui",
+        "core/error.py"
     ]
 }

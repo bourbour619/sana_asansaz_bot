@@ -50,6 +50,8 @@ class Ui_mainWindow(object):
         self.newPostBtn.setFont(font)
         self.newPostBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.newPostBtn.setAutoFillBackground(False)
+        icon = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+        self.newPostBtn.setIcon(icon)
         self.newPostBtn.setCheckable(False)
         self.newPostBtn.setFlat(False)
         self.postsBox = QGroupBox(self.sendToDivanTab)
@@ -86,6 +88,8 @@ class Ui_mainWindow(object):
         self.searchBtn.setFont(font)
         self.searchBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.searchBtn.setAutoFillBackground(False)
+        icon1 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.EditFind))
+        self.searchBtn.setIcon(icon1)
         self.searchBtn.setCheckable(False)
         self.searchBtn.setFlat(False)
         self.searchInput = QLineEdit(self.sendToDivanTab)
@@ -109,7 +113,7 @@ class Ui_mainWindow(object):
 
     def retranslateUi(self, mainWindow):
         mainWindow.setWindowTitle(QCoreApplication.translate("mainWindow", u"\u0631\u0628\u0627\u062a \u0622\u0633\u0627\u0646 \u0633\u0627\u0632 \u062b\u0646\u0627", None))
-        self.newPostBtn.setText(QCoreApplication.translate("mainWindow", u"\u0627\u0631\u0633\u0627\u0644 \u062c\u062f\u06cc\u062f", None))
+        self.newPostBtn.setText(QCoreApplication.translate("mainWindow", u"\u0627\u0631\u0633\u0627\u0644 \u062c\u062f\u06cc\u062f ", None))
         self.postsBox.setTitle(QCoreApplication.translate("mainWindow", u"\u0627\u0631\u0633\u0627\u0644 \u0647\u0627", None))
         ___qtablewidgetitem = self.postsTable.horizontalHeaderItem(0)
         ___qtablewidgetitem.setText(QCoreApplication.translate("mainWindow", u"\u0639\u0646\u0648\u0627\u0646", None));
@@ -129,7 +133,7 @@ class Ui_mainWindow(object):
         ___qtablewidgetitem7.setText(QCoreApplication.translate("mainWindow", u"\u062a\u0639\u062f\u0627\u062f \u062e\u0637\u0627", None));
         ___qtablewidgetitem8 = self.postsTable.horizontalHeaderItem(8)
         ___qtablewidgetitem8.setText(QCoreApplication.translate("mainWindow", u"\u0639\u0645\u0644\u06cc\u0627\u062a", None));
-        self.searchBtn.setText(QCoreApplication.translate("mainWindow", u"\u062c\u0633\u062a \u0648 \u062c\u0648", None))
+        self.searchBtn.setText(QCoreApplication.translate("mainWindow", u"\u062c\u0633\u062a \u0648 \u062c\u0648 ", None))
         self.searchLabel.setText(QCoreApplication.translate("mainWindow", u"\u0639\u0646\u0648\u0627\u0646 \u06cc\u0627 \u062a\u0627\u0631\u06cc\u062e:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.sendToDivanTab), QCoreApplication.translate("mainWindow", u"\u0627\u0631\u0633\u0627\u0644 \u0644\u0648\u0627\u06cc\u062d \u0628\u0647 \u062f\u06cc\u0648\u0627\u0646 \u0639\u062f\u0627\u0644\u062a \u0627\u062f\u0627\u0631\u06cc", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.fetchEblagh), QCoreApplication.translate("mainWindow", u"\u062f\u0631\u06cc\u0627\u0641\u062a \u0627\u0628\u0644\u0627\u063a\u06cc\u0647", None))

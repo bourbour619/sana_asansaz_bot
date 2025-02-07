@@ -90,7 +90,10 @@
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>ارسال جدید</string>
+      <string>ارسال جدید </string>
+     </property>
+     <property name="icon">
+      <iconset theme="QIcon::ThemeIcon::ListAdd"/>
      </property>
      <property name="checkable">
       <bool>false</bool>
@@ -201,7 +204,10 @@
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>جست و جو</string>
+      <string>جست و جو </string>
+     </property>
+     <property name="icon">
+      <iconset theme="QIcon::ThemeIcon::EditFind"/>
      </property>
      <property name="checkable">
       <bool>false</bool>
