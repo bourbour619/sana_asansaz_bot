@@ -12,6 +12,7 @@ JALALI_MONTHS = (
     'دی', 'بهمن', 'اسفند',
 )
 
+
 class PostStatus(enum.Enum):
     Draft = 'پیش نویس'
     Ready = 'آماده'
@@ -47,6 +48,11 @@ class SanaItemType(str, enum.Enum):
     TajdidNazarKhahi = 'تجدیدنظرخواهی'
 
 
+class SanaAudienceType(str, enum.Enum):
+    Saba = 'سابا'
+    Sata = 'ساتا'
+
+
 class CreateSanaItem(BaseModel):
     number: str = Field(strict=False)
     date: str
@@ -57,6 +63,7 @@ class CreateSanaItem(BaseModel):
     notice_number: str = Field(max_length=18, strict=False)
     notice_date: str = Field(max_length=10)
     set_date: str
+    sana_audience: SanaAudienceType
     tracking_code: Optional[str] = Field(max_length=16, default=None)
     success: Optional[bool] = None
     description: Optional[str] = None
@@ -79,14 +86,7 @@ class CreateAttachment(BaseModel):
 
 
 class SanaHoghooghiPerson(BaseModel):
-    code_melli: str
-    personal_passwrod: str
-    shenase: str
-    temp_code: str
-
-
-
-
-
-
-
+    national_code: str
+    user_password: str
+    legal_identity: str
+    otp_password: str

@@ -49,8 +49,8 @@ class Ui_newPost(object):
         self.uploadExcelBtn.setFont(font)
         self.uploadExcelBtn.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
         self.sanaItemsTable = QTableWidget(self.itemsBox)
-        if (self.sanaItemsTable.columnCount() < 11):
-            self.sanaItemsTable.setColumnCount(11)
+        if (self.sanaItemsTable.columnCount() < 12):
+            self.sanaItemsTable.setColumnCount(12)
         __qtablewidgetitem = QTableWidgetItem()
         self.sanaItemsTable.setHorizontalHeaderItem(0, __qtablewidgetitem)
         __qtablewidgetitem1 = QTableWidgetItem()
@@ -73,6 +73,8 @@ class Ui_newPost(object):
         self.sanaItemsTable.setHorizontalHeaderItem(9, __qtablewidgetitem9)
         __qtablewidgetitem10 = QTableWidgetItem()
         self.sanaItemsTable.setHorizontalHeaderItem(10, __qtablewidgetitem10)
+        __qtablewidgetitem11 = QTableWidgetItem()
+        self.sanaItemsTable.setHorizontalHeaderItem(11, __qtablewidgetitem11)
         self.sanaItemsTable.setObjectName(u"sanaItemsTable")
         self.sanaItemsTable.setGeometry(QRect(10, 180, 1041, 251))
         font1 = QFont()
@@ -110,8 +112,6 @@ class Ui_newPost(object):
         self.createDraftBtn = QPushButton(self.newPostBox)
         self.createDraftBtn.setObjectName(u"createDraftBtn")
         self.createDraftBtn.setGeometry(QRect(710, 50, 141, 31))
-        icon = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave))
-        self.createDraftBtn.setIcon(icon)
         self.createDraftBtn.setAutoDefault(False)
         self.titleInput = QLineEdit(self.newPostBox)
         self.titleInput.setObjectName(u"titleInput")
@@ -126,22 +126,24 @@ class Ui_newPost(object):
         self.dateLabel.setGeometry(QRect(1010, 60, 49, 16))
         self.allCountLabel = QLabel(self.newPostBox)
         self.allCountLabel.setObjectName(u"allCountLabel")
-        self.allCountLabel.setGeometry(QRect(970, 570, 101, 20))
-        self.allCountLabel.setStyleSheet(u"color: blue;")
+        self.allCountLabel.setGeometry(QRect(950, 570, 111, 31))
+        self.allCountLabel.setFont(font1)
+        self.allCountLabel.setStyleSheet(u"")
         self.uploadedCountLabel = QLabel(self.newPostBox)
         self.uploadedCountLabel.setObjectName(u"uploadedCountLabel")
-        self.uploadedCountLabel.setGeometry(QRect(620, 570, 91, 20))
-        self.uploadedCountLabel.setStyleSheet(u"color: blue;")
+        self.uploadedCountLabel.setGeometry(QRect(560, 570, 121, 31))
+        self.uploadedCountLabel.setFont(font1)
+        self.uploadedCountLabel.setStyleSheet(u"")
         self.validCountLabel = QLabel(self.newPostBox)
         self.validCountLabel.setObjectName(u"validCountLabel")
-        self.validCountLabel.setGeometry(QRect(860, 570, 91, 20))
-        self.validCountLabel.setFont(font)
-        self.validCountLabel.setStyleSheet(u"color: green;")
+        self.validCountLabel.setGeometry(QRect(830, 570, 111, 31))
+        self.validCountLabel.setFont(font1)
+        self.validCountLabel.setStyleSheet(u"")
         self.invalidCountLabel = QLabel(self.newPostBox)
         self.invalidCountLabel.setObjectName(u"invalidCountLabel")
-        self.invalidCountLabel.setGeometry(QRect(740, 570, 91, 20))
-        self.invalidCountLabel.setFont(font)
-        self.invalidCountLabel.setStyleSheet(u"color: crimson;")
+        self.invalidCountLabel.setGeometry(QRect(700, 570, 111, 31))
+        self.invalidCountLabel.setFont(font1)
+        self.invalidCountLabel.setStyleSheet(u"")
 
         self.retranslateUi(newPost)
 
@@ -177,9 +179,11 @@ class Ui_newPost(object):
         ___qtablewidgetitem8 = self.sanaItemsTable.horizontalHeaderItem(8)
         ___qtablewidgetitem8.setText(QCoreApplication.translate("newPost", u"\u062a\u0627\u0631\u06cc\u062e \u0627\u0628\u0644\u0627\u063a", None));
         ___qtablewidgetitem9 = self.sanaItemsTable.horizontalHeaderItem(9)
-        ___qtablewidgetitem9.setText(QCoreApplication.translate("newPost", u" \u062a\u0639\u062f\u0627\u062f \u0641\u0627\u06cc\u0644 \u067e\u06cc\u0648\u0633\u062a", None));
+        ___qtablewidgetitem9.setText(QCoreApplication.translate("newPost", u"\u0645\u062e\u0627\u0637\u0628 \u062b\u0646\u0627", None));
         ___qtablewidgetitem10 = self.sanaItemsTable.horizontalHeaderItem(10)
-        ___qtablewidgetitem10.setText(QCoreApplication.translate("newPost", u"\u0641\u0627\u06cc\u0644 \u067e\u06cc\u0648\u0633\u062a \u0646\u0647\u0627\u06cc\u06cc", None));
+        ___qtablewidgetitem10.setText(QCoreApplication.translate("newPost", u" \u062a\u0639\u062f\u0627\u062f \u0641\u0627\u06cc\u0644 \u067e\u06cc\u0648\u0633\u062a", None));
+        ___qtablewidgetitem11 = self.sanaItemsTable.horizontalHeaderItem(11)
+        ___qtablewidgetitem11.setText(QCoreApplication.translate("newPost", u"\u0641\u0627\u06cc\u0644 \u067e\u06cc\u0648\u0633\u062a \u0646\u0647\u0627\u06cc\u06cc", None));
         self.uploadFilesBtn.setText(QCoreApplication.translate("newPost", u"\u0628\u0627\u0631\u06af\u0632\u0627\u0631\u06cc \u0648 \u0627\u062f\u063a\u0627\u0645 \u067e\u06cc\u0648\u0633\u062a \u0647\u0627\u06cc \u0644\u0627\u06cc\u062d\u0647 (\u06f2)", None))
         self.guideLabel1.setText(QCoreApplication.translate("newPost", u"\u06f1- \u0627\u0628\u062a\u062f\u0627 \u0627\u06a9\u0633\u0644 \u0645\u0634\u062e\u0635\u0627\u062a \u0631\u0627 \u0645\u0637\u0627\u0628\u0642 \u0646\u0645\u0648\u0646\u0647 (", None))
         self.validateBtn.setText(QCoreApplication.translate("newPost", u"\u0627\u0639\u062a\u0628\u0627\u0631 \u0633\u0646\u062c\u06cc (\u06f3)", None))

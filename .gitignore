@@ -76,8 +76,11 @@ build
 dist
 data
 sample
-!sana_asansaz_bot.pyproject
-sana_asansaz_bot.*
 venv
 *.sqlite3
 *.accdb
+sana_asansaz_bot.*
+!sana_asansaz_bot.pyproject
+gui/ui_*.py
+!.env.dist
+*.env

@@ -162,6 +162,11 @@
      </column>
      <column>
       <property name="text">
+       <string>مخاطب ثنا</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string> تعداد فایل پیوست</string>
       </property>
      </column>
@@ -311,9 +316,6 @@
     <property name="text">
      <string>ثبت پیش نویس </string>
     </property>
-    <property name="icon">
-     <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
-    </property>
     <property name="autoDefault">
      <bool>false</bool>
     </property>
@@ -363,14 +365,20 @@
    <widget class="QLabel" name="allCountLabel">
     <property name="geometry">
      <rect>
-      <x>970</x>
+      <x>950</x>
       <y>570</y>
-      <width>101</width>
-      <height>20</height>
+      <width>111</width>
+      <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>B Yekan</family>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
     <property name="styleSheet">
-     <string notr="true">color: blue;</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>لایحه : ۰ مورد</string>
@@ -379,14 +387,20 @@
    <widget class="QLabel" name="uploadedCountLabel">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>560</x>
       <y>570</y>
-      <width>91</width>
-      <height>20</height>
+      <width>121</width>
+      <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>B Yekan</family>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
     <property name="styleSheet">
-     <string notr="true">color: blue;</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>آپلود‌:‌ ۰ فایل</string>
@@ -395,20 +409,20 @@
    <widget class="QLabel" name="validCountLabel">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>830</x>
       <y>570</y>
-      <width>91</width>
-      <height>20</height>
+      <width>111</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <family>B Yekan</family>
-      <pointsize>12</pointsize>
+      <pointsize>11</pointsize>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: green;</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>سالم :‌ ۰ مورد</string>
@@ -417,20 +431,20 @@
    <widget class="QLabel" name="invalidCountLabel">
     <property name="geometry">
      <rect>
-      <x>740</x>
+      <x>700</x>
       <y>570</y>
-      <width>91</width>
-      <height>20</height>
+      <width>111</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <family>B Yekan</family>
-      <pointsize>12</pointsize>
+      <pointsize>11</pointsize>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: crimson;</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>خراب: ۰ مورد</string>
