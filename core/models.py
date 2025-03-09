@@ -62,6 +62,10 @@ class SanaAudienceType(enum.Enum):
     Saba = 'سابا'
     Sata = 'ساتا'
 
+class SanaItemSendingStatus(enum.Enum):
+    Sending = 'در حال ارسال'
+    Send_Queue = 'در صف ارسال'
+    Sent = 'ارسال شده'
 
 class SanaItem(Base):
     __tablename__ = 'sana_items'
@@ -77,8 +81,9 @@ class SanaItem(Base):
     notice_date: Mapped[str] = mapped_column(String(10))
     set_date: Mapped[str] = mapped_column(String(10))
     sana_audience: Mapped[SanaAudienceType] = mapped_column(nullable=False)
-    tracking_code: Mapped[str] = mapped_column(String(16), nullable=True)
+    sending_status: Mapped[SanaItemSendingStatus] = mapped_column(default=SanaItemSendingStatus.Send_Queue)
     success: Mapped[bool] = mapped_column(default=False)
+    tracking_code: Mapped[str] = mapped_column(String(16), nullable=True)
     description: Mapped[str] = mapped_column(String(255), nullable=True)
     attachments: Mapped[List['Attachment']] = relationship(
         back_populates='sana_item')

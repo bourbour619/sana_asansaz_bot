@@ -3,9 +3,9 @@
 
 a = Analysis(
     ['main.py'],
-    pathex=['C:/Users/Mohammadreza/Desktop/Me/Projects/sana_asansaz_bot'],
+    pathex=[],
     binaries=[],
-    datas=[('data', 'data'), ('staticfiles/نمونه اکسل مشخصات.xlsx', 'staticfiles'), ('staticfiles/adliran.ico', 'staticfiles')],
+    datas=[('data', 'data'), ('staticfiles', 'staticfiles'), ('./venv/Lib/site-packages/PySide6/plugins', 'PySide6\\plugins'), ('Database.accdb', '.'), ('.env', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,4 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['staticfiles\\adliran.ico'],
 )

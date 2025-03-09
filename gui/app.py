@@ -1,25 +1,26 @@
 # This Python file uses the following encoding: utf-8
 import shutil
 import os
+import time
 import base64
 import PyPDF2
 import pandas as pd
 import qtawesome as qta
-from io import BytesIO
 from pathlib import Path
 from functools import partial
-
 from typing import List
 from pydantic import ValidationError
-from sqlalchemy import select, text
+from sqlalchemy import select
 import sqlalchemy.exc as alch_exc
+from dotenv import load_dotenv
 
 from PySide6.QtWidgets import (QApplication, QWidget, QTableWidget,
-                               QTableWidgetItem, QHeaderView, QFileDialog, QToolButton, QHBoxLayout, QStyledItemDelegate)
-from PySide6.QtGui import QIcon, QColor, QImage, QStandardItemModel, QStandardItem, QPixmap
-from PySide6.QtCore import Qt, Slot, Signal, QByteArray, QBuffer, QIODevice, QSize
+                                QListWidget, QListWidgetItem, QTableWidgetItem, QHeaderView,
+                                 QFileDialog, QToolButton, QHBoxLayout, QLabel)
+from PySide6.QtGui import QIcon, QColor
+from PySide6.QtCore import Qt, Slot, Signal, QByteArray, QBuffer, QIODevice, QSize, QTimer, QThread, QEventLoop
 
-from core import schemas, models, database, repository
+from core import schemas, models, database, repository, driver
 
 
 from .main_window import Ui_mainWindow
@@ -30,8 +31,10 @@ from .send_post import Ui_sendPost
 
 base_dir = Path(__file__).resolve().parent.parent
 
-db_instance = database.DB()
+load_dotenv()
 
+db = database.DB()
+    
 
 class IconThroughText:
 
@@ -111,7 +114,7 @@ class MainWindow(QWidget):
         self.fetch_all_posts()
 
     def fetch_all_posts(self):
-        with db_instance.get_session() as session:
+        with db.get_session() as session:
             self._posts = session.scalars(select(models.Post)).all()
             self.ui.postsTable.setRowCount(len(self._posts))
             for i, post in enumerate(self._posts[::-1]):
@@ -147,7 +150,7 @@ class MainWindow(QWidget):
 
     @Slot(str)
     def delete_post(self, post_date):
-        with db_instance.get_session() as session:
+        with db.get_session() as session:
             post = repository.PostRepository.delete(session, post_date)
             try:
                 shutil.rmtree(base_dir / 'data' / post.title)
@@ -168,14 +171,14 @@ class MainWindow(QWidget):
     @Slot(str)
     def ui_send_post(self, post_date):
         post: models.Post = None
-        with db_instance.get_session() as session:
+        with db.get_session() as session:
             post = session.get(models.Post, post_date)
-        if post is not None:
-            self.send_post = SendPost(post)
-            self.send_post.setFixedSize(600, 500)
-            self.send_post.setGeometry(
-                640, 280, self.send_post.width(), self.send_post.height())
-            self.send_post.show()
+            if post is not None:
+                self.send_post = SendPost(post)
+                self.send_post.setFixedSize(600, 500)
+                self.send_post.setGeometry(
+                    640, 280, self.send_post.width(), self.send_post.height())
+                self.send_post.show()
 
     @Slot()
     def post_created(self):
@@ -246,7 +249,7 @@ class NewPost(QWidget):
                                             status=models.PostStatus(
                                                 post.status.value),
                                             items=[])
-            with db_instance.get_session() as session:
+            with db.get_session() as session:
                 try:
                     session.add(self._post_object)
                     session.commit()
@@ -298,30 +301,46 @@ class NewPost(QWidget):
             shutil.copyfile(Path(excel_path[0]).resolve(
             ), base_dir / ('%s/اکسل مشخصات.xlsx' % post_dir))
             self._excel_df = pd.read_excel(
-                base_dir / ('%s/اکسل مشخصات.xlsx' % post_dir))
+                base_dir / ('%s/اکسل مشخصات.xlsx' % post_dir),
+                converters={'شماره لایحه': str,
+                            'تاریخ لایحه': str,
+                            'شماره بایگانی / پرونده': str,
+                            'شماره ابلاغیه / دادنامه': str,
+                            'تاریخ تنظیم': str,
+                            'تاریخ ابلاغ': str})
             self.ui.sanaItemsTable.setRowCount(self._excel_df.shape[0])
             for i, row in self._excel_df.iterrows():
                 number = QTableWidgetItem(str(row['شماره لایحه']))
+                number.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 0, number)
-                date = QTableWidgetItem(row['تاریخ لایحه'])
+                date = QTableWidgetItem(str(row['تاریخ لایحه']))
+                date.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 1, date)
                 type = QTableWidgetItem(row['نوع لایحه'])
+                type.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 2, type)
                 owner = QTableWidgetItem(row['نام و نام خانوادگی'])
+                owner.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 3, owner)
                 branch = QTableWidgetItem(row['شعبه'])
+                branch.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 4, branch)
                 file_number = QTableWidgetItem(
                     str(row['شماره بایگانی / پرونده']))
+                file_number.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 5, file_number)
                 notice_number = QTableWidgetItem(
                     str(row['شماره ابلاغیه / دادنامه']))
+                notice_number.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 6, notice_number)
-                set_date = QTableWidgetItem(row['تاریخ تنظیم'])
+                set_date = QTableWidgetItem(str(row['تاریخ تنظیم']))
+                set_date.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 7, set_date)
-                notice_date = QTableWidgetItem(row['تاریخ ابلاغ'])
+                notice_date = QTableWidgetItem(str(row['تاریخ ابلاغ']))
+                notice_date.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 8, notice_date)
                 sana_audience = QTableWidgetItem(row['مخاطب ثنا'])
+                sana_audience.setTextAlignment(Qt.AlignCenter)
                 self.ui.sanaItemsTable.setItem(i, 9, sana_audience)
             self.ui.allCountLabel.setText(
                 'لایحه:‌ %d مورد' % self._excel_df.shape[0])
@@ -334,6 +353,8 @@ class NewPost(QWidget):
     @Slot()
     def upload_and_merge(self):
         if self._post_object is not None:
+            self._excel_df['attachments_count'] = None
+            self._excel_df['final_attachment'] = None
             dialog = QFileDialog()
             dialog.setFileMode(QFileDialog.AnyFile)
 
@@ -355,13 +376,13 @@ class NewPost(QWidget):
             attachments: List[schemas.CreateAttachment] = list()
             for i, row in self._excel_df.iterrows():
                 deleted = []
-                for i, dest_filepath in enumerate(dest_filepaths):
+                for j, dest_filepath in enumerate(dest_filepaths):
                     attachment: schemas.CreateAttachment = None
                     if ('%s %s' % (row['نوع لایحه'], row['نام و نام خانوادگی'])) in str(dest_filepath):
                         attachment = schemas.CreateAttachment(
                             name=dest_filepath.stem, path=str(dest_filepath))
                         attachments.append(attachment)
-                        deleted.append(i)
+                        deleted.append(j)
                 for d in deleted[::-1]:
                     dest_filepaths.pop(d)
 
@@ -375,8 +396,8 @@ class NewPost(QWidget):
                             ('data/%s/%s 0.pdf' %
                              (self._post_object.title, merged_filename))
                         merger.write(merged_filepath)
-                    self._excel_df['attachments_count'] = len(attachments)
-                    self._excel_df['final_attachment'] = merged_filepath
+                    self._excel_df.loc[i, 'attachments_count'] = len(attachments)
+                    self._excel_df.loc[i,'final_attachment'] = merged_filepath
                 attachments.clear()
             self.ui.validateBtn.setEnabled(True)
 
@@ -414,38 +435,48 @@ class NewPost(QWidget):
 
             number = QTableWidgetItem(str(row['شماره لایحه']))
             NewPost.styleTableWidgetItem(number, errors.get('number'))
+            number.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 0, number)
-            date = QTableWidgetItem(row['تاریخ لایحه'])
+            date = QTableWidgetItem(str(row['تاریخ لایحه']))
             NewPost.styleTableWidgetItem(date, errors.get('date'))
+            date.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 1, date)
-            type = QTableWidgetItem(row['نوع لایحه'])
+            type = QTableWidgetItem(str(row['نوع لایحه']))
             NewPost.styleTableWidgetItem(type, errors.get('type'))
+            type.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 2, type)
-            owner = QTableWidgetItem(row['نام و نام خانوادگی'])
+            owner = QTableWidgetItem(str(row['نام و نام خانوادگی']))
             NewPost.styleTableWidgetItem(owner, errors.get('owner'))
+            owner.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 3, owner)
-            branch = QTableWidgetItem(row['شعبه'])
+            branch = QTableWidgetItem(str(row['شعبه']))
             NewPost.styleTableWidgetItem(branch, errors.get('branch'))
+            branch.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 4, branch)
             file_number = QTableWidgetItem(str(row['شماره بایگانی / پرونده']))
             NewPost.styleTableWidgetItem(
                 file_number, errors.get('file_number'))
+            file_number.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 5, file_number)
             notice_number = QTableWidgetItem(
                 str(row['شماره ابلاغیه / دادنامه']))
             NewPost.styleTableWidgetItem(
                 notice_number, errors.get('notice_number'))
+            notice_number.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 6, notice_number)
-            set_date = QTableWidgetItem(row['تاریخ تنظیم'])
+            set_date = QTableWidgetItem(str(row['تاریخ تنظیم']))
             NewPost.styleTableWidgetItem(set_date, errors.get('set_date'))
+            set_date.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 7, set_date)
-            notice_date = QTableWidgetItem(row['تاریخ ابلاغ'])
+            notice_date = QTableWidgetItem(str(row['تاریخ ابلاغ']))
             NewPost.styleTableWidgetItem(
                 notice_date, errors.get('notice_date'))
+            notice_date.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 8, notice_date)
-            sana_audience = QTableWidgetItem(row['مخاطب ثنا'])
+            sana_audience = QTableWidgetItem(str(row['مخاطب ثنا']))
             NewPost.styleTableWidgetItem(
                 sana_audience, errors.get('sana_audience'))
+            sana_audience.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 9, sana_audience)
             if row.get('attachments_count') is not None:
                 attachments_count = QTableWidgetItem(
@@ -454,16 +485,18 @@ class NewPost(QWidget):
                 attachments_count = QTableWidgetItem('0')
                 errors['attachments_count'] = 'فایل پیوست برای لایحه وجود ندارد.'
             NewPost.styleTableWidgetItem(
-                attachments_count, errors.get('attachment_count'))
+                attachments_count, errors.get('attachments_count'))
+            attachments_count.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 10, attachments_count)
             if row.get('final_attachment') is not None:
                 attachment_name = Path(row['final_attachment']).stem
                 final_attachment = QTableWidgetItem(attachment_name)
             else:
-                final_attachment = QTableWidgetItem('')
+                final_attachment = QTableWidgetItem('!')
                 errors['final_attachment'] = 'فایل پیوست برای لایحه وجود ندارد.'
             NewPost.styleTableWidgetItem(
                 final_attachment, errors.get('final_attachment'))
+            final_attachment.setTextAlignment(Qt.AlignCenter)
             self.ui.sanaItemsTable.setItem(i, 11, final_attachment)
             if not errors:
                 valid += 1
@@ -498,53 +531,99 @@ class NewPost(QWidget):
     @Slot()
     def new_final_post(self):
         failed = False
-        with db_instance.get_session() as session:
+        with db.get_session() as session:
+            error_dialog_list : list[MessageDialog] = list()
             for i, sana_item_object in enumerate(self._sana_item_objects):
                 try:
+                    if sana_item_object.post in session:
+                        session.expunge(sana_item_object.post)
                     session.add(sana_item_object)
                     session.commit()
                 except alch_exc.IntegrityError:
                     failed = True
-                    message_dialog = MessageDialog(
+                    error_dialog_list.append(
+                        MessageDialog(
                         'error', 'شماره لایحه %d تکراری است' % int(sana_item_object.number))
-                    message_dialog.show()
+                    )
+                    error_dialog_list[-1].show()
+                    session.rollback()
+                    continue
         if not failed:
             self.emit_created()
+    
+
+class SanaListItemWidget(QWidget):
+
+    def __init__(self, index: int, item: models.SanaItem):
+        super().__init__()
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(15, 15, 15, 15)  # Left, Top, Right, Bottom margins
+        layout.setSpacing(10)  # Space between elements
+
+        text_label1 = QLabel(f'{index} {models.SanaItemType(item.type).value} {item.owner}')
+        text_label1.setAlignment(Qt.AlignRight | Qt.AlignVCenter)  # Set text alignment to RTL
+        layout.addWidget(text_label1)
+
+        arrow_icon = qta.icon('mdi.arrow-left-thick')
+        arrow_icon_label1 = QLabel()
+        arrow_icon_label1.setPixmap(arrow_icon.pixmap(20, 20))
+        arrow_icon_label1.setFixedSize(20, 20)
+        layout.addWidget(arrow_icon_label1)
 
 
-class MultiTextIconDelegate(QStyledItemDelegate):
-    """Custom delegate to draw multiple texts and icons"""
+        text_label2 = QLabel(models.SanaAudienceType(item.sana_audience).value)
+        text_label2.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        layout.addWidget(text_label2)
 
-    def paint(self, painter, option, index):
-        if not index.isValid():
-            return
+        arrow_icon_label2 = QLabel()
+        arrow_icon_label2.setPixmap(arrow_icon.pixmap(20, 20))
+        arrow_icon_label2.setFixedSize(20, 20)
+        layout.addWidget(arrow_icon_label2)
 
-        data = index.data(Qt.UserRole)  # Get stored (text, icon) list
-        if not data:
-            return
 
-         # Set painter text direction to RTL
-        painter.setLayoutDirection(Qt.RightToLeft)
+        text_label3 = QLabel(models.SanaItemSendingStatus(item.sending_status).value)
+        text_label3.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        layout.addWidget(text_label3)
 
-        x = option.rect.right() - 5  # Start from right side (RTL)
-        y = option.rect.y() + option.rect.height() // 2  # Center vertically
+        if item.sending_status == models.SanaItemSendingStatus.Send_Queue:
+            hand_icon = qta.icon('mdi.hand-left')
+            hand_icon_label = QLabel()
+            hand_icon_label.setPixmap(hand_icon.pixmap(20, 20))
+            hand_icon_label.setFixedSize(20, 20)
+            layout.addWidget(hand_icon_label)
+        elif item.sending_status == models.SanaItemSendingStatus.Sending:
+            loading_icon_widget = qta.IconWidget()
+            loading_icon = qta.icon('fa.spinner', animation=qta.Pulse(loading_icon_widget, autostart=True))
+            loading_icon_widget.setIcon(loading_icon)
+            loading_icon_widget.setFixedSize(20, 20)
+            layout.addWidget(loading_icon_widget)
+        elif item.sending_status == models.SanaItemSendingStatus.Sent:
+            if item.success:
+                text_label4 = QLabel(item.tracking_code)
+                text_label4.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                layout.addWidget(text_label4)
+                ok_icon = qta.icon('mdi.check')
+                ok_icon_label = QLabel()
+                ok_icon_label.setPixmap(ok_icon.pixmap(20, 20))
+                ok_icon_label.setFixedSize(20, 20)
+                layout.addWidget(ok_icon_label)
+            else:
+                error_icon = qta.icon('mdi.close-circle')
+                error_icon_label = QLabel()
+                error_icon_label.setPixmap(error_icon.pixmap(20, 20))
+                error_icon_label.setFixedSize(20, 20)
+                layout.addWidget(error_icon_label)
 
-        for item in data:  # Reverse order for RTL alignment
-            if isinstance(item, str):  # If it's text
-                text_width = painter.fontMetrics().horizontalAdvance(item)
-                x -= text_width + 10  # Move cursor left
-                painter.drawText(x, y, item)
-            elif isinstance(item, QPixmap):  # If it's an icon
-                x -= item.width() + 5  # Move cursor left for icon
-                painter.drawPixmap(
-                    x, option.rect.y() + (option.rect.height() - item.height()) // 2, item)
 
-    def sizeHint(self, option, index):
-        """Ensure proper item height"""
-        return QSize(option.rect.width(), 40)  # Set a fixed item height
+        layout.addStretch()
+
+        self.setLayout(layout)
 
 
 class SendPost(QWidget):
+    
+    seconds : int = 0
 
     def __init__(self, post: models.Post):
         super(SendPost, self).__init__()
@@ -553,27 +632,71 @@ class SendPost(QWidget):
         self.ui = Ui_sendPost()
         self.ui.setupUi(self)
         self.ui.sendPostBox.setTitle(post.title)
-        with db_instance.get_session() as session:
-            post = session.merge(post)
-            self.render_sana_items_list(post.items)
+        self.ui.postSanaItemsList.setEditTriggers(QListWidget.EditTrigger.NoEditTriggers)
+        self.ui.postSanaItemsList.setLayoutDirection(Qt.RightToLeft)
+        self.ui.startButton.setIcon(qta.icon('fa.play'))
+        self.ui.startButton.setIconSize(QSize(16, 16))
+        self.ui.startButton.clicked.connect(self.start)
+        self.ui.stopButton.setIcon(qta.icon('fa.stop'))
+        self.ui.stopButton.setIconSize(QSize(16, 16))
+        self.ui.stopButton.clicked.connect(self.stop)
+        # stopwatch
+        h = SendPost.seconds // 3600
+        m = (SendPost.seconds % 3600) // 60
+        s = SendPost.seconds % 60
+        self.ui.stopwatchLabel.setText(f'زمان: {h:02}:{m:02}:{s:02}')
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_stopwatch)
+        self._post = post
+        self.render_items_list()
 
-    def render_sana_items_list(self, items: List[models.SanaItem]):
-        model = QStandardItemModel()
-        arrow_icon = qta.icon('mdi.arrow-left-thick')
-        for i, item in enumerate(items):
-            model_item = QStandardItem()
-            type = models.SanaItemType(item.type).value
-            s = [f'{i + 1} {type} {item.owner}']
-            s.append(arrow_icon.pixmap(20, 20))
-            s.append('انجام نشده')
-            s.append(arrow_icon.pixmap(20, 20))
-            s.append('کد رهگیری: ۰')
-            model_item.setData(s, Qt.UserRole)
-            model_item.setSizeHint(QSize(0, 40))
-            model.appendRow(model_item)
-        self.ui.postSanaItemsList.setModel(model)
-        self.ui.postSanaItemsList.setItemDelegate(MultiTextIconDelegate())
-        self.ui.postSanaItemsList.show()
+    @Slot()
+    def update_stopwatch(self):
+        SendPost.seconds += 1
+        h = SendPost.seconds // 3600
+        m = (SendPost.seconds % 3600) // 60
+        s = SendPost.seconds % 60
+        self.ui.stopwatchLabel.setText(f'زمان: {h:02}:{m:02}:{s:02}')
+
+    @Slot()    
+    def start(self):
+        if self._post.items is not None:
+            if not self.timer.isActive():
+                self.timer.start(1000)
+            loop = QEventLoop()
+            self._sana_worker = SanaSeleniumWorker(sana_items_list=self._post.items)
+            self._sana_worker.sana_item_change.connect(self.change_item_status)
+            self._sana_worker.finished.connect(loop.quit)
+            self._sana_worker.start()
+            loop.exec_()
+    @Slot()
+    def stop(self):
+        self.timer.stop()
+
+    def change_item_status(self, item: models.SanaItem):
+        with db.get_session() as session:
+            item = session.merge(item)
+            session.commit()
+        self.render_items_list()
+
+    def render_items_list(self):
+        with db.get_session() as session:
+            self._post = session.get(models.Post, self._post.date)
+            self._post.items.sort(
+                    key=lambda item: (
+                        0 if item.sana_audience == models.SanaAudienceType.Saba else 
+                        1 if item.sana_audience == models.SanaAudienceType.Sata else 
+                        2)
+                )
+            self.ui.postSanaItemsList.clear()
+            for i, item in enumerate(self._post.items, start=1):
+                item_widget = SanaListItemWidget(index=i, item=item)
+                list_item = QListWidgetItem(self.ui.postSanaItemsList)
+                list_item.setSizeHint(item_widget.sizeHint())  # Set item size to match the widget's size
+                list_item.setTextAlignment(Qt.AlignRight)
+                self.ui.postSanaItemsList.addItem(list_item)
+                self.ui.postSanaItemsList.setItemWidget(list_item, item_widget)
+            self.ui.postSanaItemsList.show()
 
 
 class App(QApplication):
@@ -585,3 +708,40 @@ class App(QApplication):
         main_window = MainWindow()
         main_window.show()
         super(App, self).exec()
+
+
+class SanaSeleniumWorker(QThread):
+
+    sana_item_change = Signal(object)
+    SABA_PEROSN = schemas.SanaHoghooghiPerson(
+                            national_code=os.getenv('SABA_PERSON_NATIONAL_CODE'),
+                            user_password=os.getenv('SABA_PERSON_USER_PASSWORD'),
+                            legal_identity=os.getenv('SABA_PERSON_LEGAL_IDENTITY'),
+                            otp_password=os.getenv('SABA_PERSON_OTP_PASSWORD'))
+
+    SATA_PERSON = schemas.SanaHoghooghiPerson(
+                    national_code=os.getenv('SATA_PERSON_NATIONAL_CODE'),
+                    user_password=os.getenv('SATA_PERSON_USER_PASSWORD'),
+                    legal_identity=os.getenv('SATA_PERSON_LEGAL_IDENTITY'),
+                    otp_password=os.getenv('SATA_PERSON_OTP_PASSWORD'))
+
+    def __init__(self, sana_items_list: List[models.SanaItem], parent=None):
+        super().__init__(parent)
+        self._driver = driver.SanaHoghooghiDriver()
+        self._sana_items_list = sana_items_list
+
+    def run(self):
+        for i, sana_item in enumerate(self._sana_items_list, start=1):
+            if isinstance(sana_item, models.SanaItem):
+                sana_item.sending_status =  models.SanaItemSendingStatus.Sending
+                self.sana_item_change.emit(sana_item)
+                if sana_item.sana_audience == models.SanaAudienceType.Saba:
+                    if self._driver.get_sana_perosn() != self.SABA_PEROSN:
+                            self._driver.set_sana_person(person=self.SABA_PEROSN)
+                    self._driver.send_sana_item(i, sana_item)
+                if sana_item.sana_audience == models.SanaAudienceType.Sata:
+                    if self._driver.get_sana_perosn() != self.SATA_PERSON:
+                            self._driver.set_sana_person(person=self.SATA_PERSON)
+                    self._driver.send_sana_item(i, sana_item)
+                if sana_item.sending_status == models.SanaItemSendingStatus.Sent:
+                    self.sana_item_change.emit(sana_item)

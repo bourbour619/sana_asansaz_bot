@@ -1,7 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from . import models
+if __package__ == 'core':
+    from . import models
+else:
+    import models
 
 
 class PostRepository:

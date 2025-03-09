@@ -182,7 +182,7 @@
     <widget class="QPushButton" name="searchBtn">
      <property name="geometry">
       <rect>
-       <x>30</x>
+       <x>850</x>
        <y>30</y>
        <width>111</width>
        <height>31</height>
@@ -208,29 +208,6 @@
      </property>
      <property name="flat">
       <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="searchInput">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>30</y>
-       <width>251</width>
-       <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="searchLabel">
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>40</y>
-       <width>101</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>عنوان یا تاریخ:</string>
      </property>
     </widget>
    </widget>

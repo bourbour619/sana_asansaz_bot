@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'MainWindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.0
+## Created by: Qt User Interface Compiler version 6.8.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -15,9 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGroupBox, QHeaderView, QLabel,
-    QLineEdit, QPushButton, QSizePolicy, QTabWidget,
-    QTableWidget, QTableWidgetItem, QWidget)
+from PySide6.QtWidgets import (QApplication, QGroupBox, QHeaderView, QPushButton,
+    QSizePolicy, QTabWidget, QTableWidget, QTableWidgetItem,
+    QWidget)
 
 class Ui_mainWindow(object):
     def setupUi(self, mainWindow):
@@ -82,18 +82,12 @@ class Ui_mainWindow(object):
         self.postsTable.setFont(font)
         self.searchBtn = QPushButton(self.sendToDivanTab)
         self.searchBtn.setObjectName(u"searchBtn")
-        self.searchBtn.setGeometry(QRect(30, 30, 111, 31))
+        self.searchBtn.setGeometry(QRect(850, 30, 111, 31))
         self.searchBtn.setFont(font)
         self.searchBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.searchBtn.setAutoFillBackground(False)
         self.searchBtn.setCheckable(False)
         self.searchBtn.setFlat(False)
-        self.searchInput = QLineEdit(self.sendToDivanTab)
-        self.searchInput.setObjectName(u"searchInput")
-        self.searchInput.setGeometry(QRect(150, 30, 251, 31))
-        self.searchLabel = QLabel(self.sendToDivanTab)
-        self.searchLabel.setObjectName(u"searchLabel")
-        self.searchLabel.setGeometry(QRect(410, 40, 101, 20))
         self.tabWidget.addTab(self.sendToDivanTab, "")
         self.fetchEblagh = QWidget()
         self.fetchEblagh.setObjectName(u"fetchEblagh")
@@ -130,7 +124,6 @@ class Ui_mainWindow(object):
         ___qtablewidgetitem8 = self.postsTable.horizontalHeaderItem(8)
         ___qtablewidgetitem8.setText(QCoreApplication.translate("mainWindow", u"\u0639\u0645\u0644\u06cc\u0627\u062a", None));
         self.searchBtn.setText(QCoreApplication.translate("mainWindow", u"\u062c\u0633\u062a \u0648 \u062c\u0648 ", None))
-        self.searchLabel.setText(QCoreApplication.translate("mainWindow", u"\u0639\u0646\u0648\u0627\u0646 \u06cc\u0627 \u062a\u0627\u0631\u06cc\u062e:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.sendToDivanTab), QCoreApplication.translate("mainWindow", u"\u0627\u0631\u0633\u0627\u0644 \u0644\u0648\u0627\u06cc\u062d \u0628\u0647 \u062f\u06cc\u0648\u0627\u0646 \u0639\u062f\u0627\u0644\u062a \u0627\u062f\u0627\u0631\u06cc", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.fetchEblagh), QCoreApplication.translate("mainWindow", u"\u062f\u0631\u06cc\u0627\u0641\u062a \u0627\u0628\u0644\u0627\u063a\u06cc\u0647", None))
     # retranslateUi
